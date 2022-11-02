@@ -40,6 +40,19 @@
 
 #@ def antreadatavalues():
 infraProvider: #@ data.values.PROVIDER_TYPE
+antrea-nsx:
+  enable: #@ data.values.ANTREA_NSX_ENABLE
+  bootstrapFrom:
+    provider:
+      apiVersion: #@ data.values.ANTREA_NSX_BOOTSTRAPFROM_PROVIDER_APIVERSION
+      kind: #@ data.values.ANTREA_NSX_BOOTSTRAPFROM_PROVIDER_KIND
+      name: #@ data.values.ANTREA_NSX_BOOTSTRAPFROM_PROVIDER_NAME
+    inline:
+      nsxManagers: #@ data.values.ANTREA_NSX_BOOTSTRAPFROM_INLINE_NSXMANAGERS
+      clusterName: #@ data.values.ANTREA_NSX_BOOTSTRAPFROM_INLINE_CLUSTERNAME
+      nsCrt:
+        tls.crt: #@ data.values.ANTREA_NSX_BOOTSTRAPFROM_INLINE_NSXCERT_TLSCRT
+        tls.key: #@ data.values.ANTREA_NSX_BOOTSTRAPFROM_INLINE_NSXCERT_TLSKEY
 antrea:
   config:
     egress:

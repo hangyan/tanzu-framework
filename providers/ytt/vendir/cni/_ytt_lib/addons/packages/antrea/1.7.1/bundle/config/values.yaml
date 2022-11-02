@@ -11,6 +11,23 @@ deployment:
     maxSurge: null
 daemonset:
   updateStrategy: null
+
+
+antrea-nsx:
+  enable: true
+  bootstrapFrom:
+    provider:
+      apiVersion: nsx.vmware.com/v1alpha1
+      kind: NSXServiceAccount
+      name: null
+    inline:
+      nsxManagers:  []
+      clusterName: null
+      nsxCert:
+        tls.crt: null
+        tls.key: null
+
+
 antrea:
   config:
     egress:

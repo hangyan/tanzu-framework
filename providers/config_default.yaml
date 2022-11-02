@@ -629,6 +629,18 @@ AVI_INGRESS_NODE_NETWORK_LIST: ""
 
 
 #! ---------------------------------------------------------------------
+#! Antrea CNI NSX configuration
+#! ---------------------------------------------------------------------
+ANTREA_NSX_ENABLE: false
+ANTREA_NSX_BOOTSTRAPFROM_PROVIDER_APIGROUP: nsx.vmware.com/v1alhpa1
+ANTREA_NSX_BOOTSTRAPFROM_PROVIDER_KIND: NSXServiceAccount
+ANTREA_NSX_BOOTSTRAPFROM_PROVIDER_NMAE: ""
+ANTREA_NSX_BOOTSTRAPFROM_INLINE_NSXMANAGERS: []
+ANTREA_NSX_BOOTSTRAPFROM_INLINE_CLUSTERNAME: ""
+ANTREA_NSX_BOOTSTRAPFROM_INLINE_NSXCERT_TLSCRT: ""
+ANTREA_NSX_BOOTSTRAPFROM_INLINE_NSXCERT_TLSKEY: ""
+
+#! ---------------------------------------------------------------------
 #! Antrea CNI configuration
 #! ---------------------------------------------------------------------
 ANTREA_NO_SNAT: false

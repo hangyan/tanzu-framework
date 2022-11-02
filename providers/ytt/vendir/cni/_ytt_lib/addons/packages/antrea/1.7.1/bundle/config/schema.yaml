@@ -22,7 +22,25 @@ deployment:
 daemonset:
   #@schema/desc "Update strategy of daemonsets"
   #@schema/nullable
-  updateStrategy: ""
+  updateStrategy:
+
+antrea-nsx:
+  #@schema/desc "Enable Antrea-NSX feature."
+  enable: false
+  bootstrapFrom:
+    #@schema/desc "Config for uTKG cluster"
+    provider:
+      apiVersion:
+      kind:
+      name:
+    #@schema/desc "Config for TkGm cluster"
+    inline:
+      nsxManagers:
+      clusterName:
+      nsxCert:
+        tls.ert:
+        tls.key:
+
 antrea:
   #@schema/desc "Configuration for antrea"
   config:

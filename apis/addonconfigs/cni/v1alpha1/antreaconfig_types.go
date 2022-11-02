@@ -11,7 +11,39 @@ type AntreaProxyNodePortAddress []string
 
 // AntreaConfigSpec defines the desired state of AntreaConfig
 type AntreaConfigSpec struct {
-	Antrea Antrea `json:"antrea,omitempty"`
+	Antrea    Antrea    `json:"antrea,omitempty"`
+	AntreaNSX AntreaNSX `json:"antreaNSX,omitempty"`
+}
+
+type AntreaNSX struct {
+	AntreaNSXConfigDataValue AntreaNSXConfigDataValue `json:"config,omitempty"`
+}
+
+type BootstrapFrom struct {
+	Provider BootstrapProvider `yaml:"provider,omitempty"`
+	Inline   BootstrapInline   `yaml:"inline,omitempty"`
+}
+
+type BootstrapProvider struct {
+	APIVersion string `yaml:"apiVersion, omitempty"`
+	Kind       string `yaml:"kind,omitempty"`
+	Name       string `yaml:"name,omitempty"`
+}
+
+type BootstrapInline struct {
+	NSXManagers []string `yaml:"nsxManagers,omitempty"`
+	ClusterName string   `yaml:"clusterName,omitempty"`
+	NSXCert     NSXCert  `yaml:"nsxCert,omitempty"`
+}
+
+type NSXCert struct {
+	TLSCrt string `yaml:"tls.crt,omitempty"`
+	TLSKey string `yaml:"tls.key,omitempty"`
+}
+
+type AntreaNSXConfigDataValue struct {
+	Enable        bool          `json:"enable,omitempty"`
+	BootstrapFrom BootstrapFrom `json:"bootstrapFrom,omitempty"`
 }
 
 type Antrea struct {

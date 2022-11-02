@@ -21,8 +21,40 @@ import (
 
 // AntreaConfigSpec defines the desired state of AntreaConfig
 type antreaConfigSpec struct {
-	InfraProvider string `yaml:"infraProvider"`
-	Antrea        antrea `yaml:"antrea,omitempty"`
+	InfraProvider string    `yaml:"infraProvider"`
+	Antrea        antrea    `yaml:"antrea,omitempty"`
+	AntreaNSX     antreaNSX `yaml:"antrea-nsx,omitempty"`
+}
+
+type antreaNSX struct {
+	AntreaNSXConfigDataValue antreaNSXConfigDataValue `yaml:"config,omitempty"`
+}
+
+type antreaNSXConfigDataValue struct {
+	Enable        bool          `yaml:"enable,omitempty"`
+	BootstrapFrom BootstrapFrom `yaml:"BootstrapFrom,omitempty"`
+}
+
+type BootstrapFrom struct {
+	Provider BootstrapProvider `yaml:"provider,omitempty"`
+	Inline   BootstrapInline   `yaml:"inline,omitempty"`
+}
+
+type BootstrapProvider struct {
+	APIVersion string `yaml:"apiVersion, omitempty"`
+	Kind       string `yaml:"kind,omitempty"`
+	Name       string `yaml:"name,omitempty"`
+}
+
+type BootstrapInline struct {
+	NSXManagers []string `yaml:"nsxManagers,omitempty"`
+	ClusterName string   `yaml:"clusterName,omitempty"`
+	NSXCert     NSXCert  `yaml:"nsxCert,omitempty"`
+}
+
+type NSXCert struct {
+	TLSCrt string `yaml:"tls.crt,omitempty"`
+	TLSKey string `yaml:"tls.key,omitempty"`
 }
 
 type antrea struct {
@@ -155,6 +187,15 @@ func mapAntreaConfigSpec(cluster *clusterv1beta1.Cluster, config *cniv1alpha1.An
 	if err != nil {
 		return nil, errors.Wrap(err, "Unable to get serviceCIDR")
 	}
+
+	configSpec.AntreaNSX.AntreaNSXConfigDataValue.Enable = config.Spec.AntreaNSX.AntreaNSXConfigDataValue.Enable
+	configSpec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Provider.Kind = config.Spec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Provider.Kind
+	configSpec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Provider.APIVersion = config.Spec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Provider.APIVersion
+	configSpec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Provider.Name = config.Spec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Provider.Name
+	configSpec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Inline.NSXManagers = config.Spec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Inline.NSXManagers
+	configSpec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Inline.ClusterName = config.Spec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Inline.ClusterName
+	configSpec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Inline.NSXCert.TLSCrt = config.Spec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Inline.NSXCert.TLSCrt
+	configSpec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Inline.NSXCert.TLSKey = config.Spec.AntreaNSX.AntreaNSXConfigDataValue.BootstrapFrom.Inline.NSXCert.TLSKey
 
 	// Note: ServiceCIDR and ServiceCIDRv6 are automatically ignored when AntreaProxy is enabled
 	configSpec.Antrea.AntreaConfigDataValue.ServiceCIDR = serviceCIDR
