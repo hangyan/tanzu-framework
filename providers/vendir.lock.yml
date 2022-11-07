@@ -10,10 +10,10 @@ directories:
   path: ytt/vendir/vsphere_cpi/_ytt_lib
 - contents:
   - git:
-      commitTitle: update package desc
-      sha: d961f51aad17cf68e5abd5f66ff99da3c64d5700
+      commitTitle: remove antrea-nsx config
+      sha: 8236a3117cc0285cc67e5e58c4a015e7b9db32f4
       tags:
-      - v0.10.0-dev.2-1527-gd961f51a
+      - v0.10.0-dev.2-1533-g8236a311
     path: .
   path: ytt/vendir/cni/_ytt_lib
 - contents:

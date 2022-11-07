@@ -46,6 +46,20 @@ metadata:
     kubernetes.io/service-account.name: antctl
 type: kubernetes.io/service-account-token
 ---
+# Source: antrea/templates/agent/tweakerconfigmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: antrea-agent-tweaker
+  namespace: kube-system
+  labels:
+    app: antrea
+data:
+  antrea-agent-tweaker.conf: |-
+    # Enable disableUdpTunnelOffload will disable udp tunnel offloading feature on kubernetes node's default interface.
+    # By default, no actions will be taken.
+    disableUdpTunnelOffload: false
+---
 # Source: antrea/templates/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
@@ -249,7 +263,7 @@ data:
     # Enable NodePortLocal, a feature used to make Pods reachable using port forwarding on the host. To
     # enable this feature, you need to set "enable" to true, and ensure that the NodePortLocal feature
     # gate is also enabled (which is the default).
-      enable: false
+      enable: true
     # Provide the port range used by NodePortLocal. When the NodePortLocal feature is enabled, a port
     # from that range will be assigned whenever a Pod's container defines a specific port to be exposed
     # (each container can define a list of ports as pod.spec.containers[].ports), and all Node traffic
@@ -269,7 +283,7 @@ data:
     # https://golang.org/pkg/crypto/tls/#pkg-constants
     # Note that TLS1.3 Cipher Suites cannot be added to the list. But the apiserver will always
     # prefer TLS1.3 Cipher Suites whenever possible.
-    tlsCipherSuites: ""
+    tlsCipherSuites: "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384"
 
     # TLS min version from: VersionTLS10, VersionTLS11, VersionTLS12, VersionTLS13.
     tlsMinVersion: ""
@@ -416,7 +430,7 @@ data:
     # https://golang.org/pkg/crypto/tls/#pkg-constants
     # Note that TLS1.3 Cipher Suites cannot be added to the list. But the apiserver will always
     # prefer TLS1.3 Cipher Suites whenever possible.
-    tlsCipherSuites: ""
+    tlsCipherSuites: "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384"
 
     # TLS min version from: VersionTLS10, VersionTLS11, VersionTLS12, VersionTLS13.
     tlsMinVersion: ""
@@ -452,6 +466,12 @@ data:
       #   tls.crt: <CA certificate>
       #   tls.key: <CA private key>
       selfSignedCA: true
+
+    # Indicates whether to enable usage reporting or not.
+    enableUsageReporting: false
+
+    # Indicates whether to enable Antrea advanced features or not.
+    enterpriseAntrea: true
 ---
 # Source: antrea/templates/crds/antreaagentinfo.yaml
 apiVersion: apiextensions.k8s.io/v1
@@ -2379,6 +2399,92 @@ spec:
     shortNames:
       - tr
 ---
+# Source: antrea/templates/crds/tierentitlement.yaml
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: tierentitlements.crd.antrea.tanzu.vmware.com
+  labels:
+    app: antrea
+spec:
+  group: crd.antrea.tanzu.vmware.com
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              required:
+                - permission
+                - tiers
+              type: object
+              properties:
+                permission:
+                  type: string
+                  enum: ['edit']
+                tiers:
+                  type: array
+                  items:
+                    type: string
+  scope: Cluster
+  names:
+    plural: tierentitlements
+    singular: tierentitlement
+    kind: TierEntitlement
+    shortNames:
+      - te
+---
+# Source: antrea/templates/crds/tierentitlementbinding.yml
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: tierentitlementbindings.crd.antrea.tanzu.vmware.com
+  labels:
+    app: antrea
+spec:
+  group: crd.antrea.tanzu.vmware.com
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              required:
+                - tierEntitlement
+                - subjects
+              type: object
+              properties:
+                tierEntitlement:
+                  type: string
+                subjects:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      kind:
+                        type: string
+                        enum: ['User', 'Group', 'ServiceAccount']
+                      apiGroup:
+                        type: string
+                        enum: ['rbac.authorization.k8s.io']
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+  scope: Cluster
+  names:
+    plural: tierentitlementbindings
+    singular: tierentitlementbinding
+    kind: TierEntitlementBinding
+    shortNames:
+      - teb
+---
 # Source: antrea/templates/crds/traceflow.yaml
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -3309,6 +3415,14 @@ rules:
     verbs:
       - create
   - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    resourceNames:
+      - antrea-config
+    verbs:
+      - get
+  - apiGroups:
       - apiregistration.k8s.io
     resources:
       - apiservices
@@ -3484,6 +3598,15 @@ rules:
       - get
       - list
       - watch
+  - apiGroups:
+      - crd.antrea.tanzu.vmware.com
+    resources:
+      - tierentitlements
+      - tierentitlementbindings
+    verbs:
+      - get
+      - watch
+      - list
 ---
 # Source: antrea/templates/crds-rbac/clusterroles.yaml
 apiVersion: rbac.authorization.k8s.io/v1
@@ -3661,7 +3784,8 @@ spec:
         kubectl.kubernetes.io/default-container: antrea-agent
         # Automatically restart Pods with a RollingUpdate if the ConfigMap changes
         # See https://helm.sh/docs/howto/charts_tips_and_tricks/#automatically-roll-deployments
-        checksum/config: 750097fa4ed60fda68fedf2f31b06a1a62dbbe5dc9a38e9c1f9ddc861a389401
+        checksum/config: ea61360cc22dff22cc94fba060568c110d5bac03638203b7f0ec04282129d6e5
+        checksum/tweaker-config: 2d2c4693a82ee4f18de916ab3a50276d064eb8058a673f7e6b7719b9e5c21190
       labels:
         app: antrea
         component: antrea-agent
@@ -3680,8 +3804,29 @@ spec:
           operator: Exists
       serviceAccountName: antrea-agent
       initContainers:
+        - name: antrea-agent-tweaker
+          image: "antrea/antrea-advanced-debian:v1.7.1_vmware.1"
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 100m
+          command: ["antrea-agent-tweaker"]
+          args: ["--config", "/etc/antrea/antrea-agent-tweaker.conf"]
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+          volumeMounts:
+          - name: antrea-agent-tweaker-config
+            mountPath: /etc/antrea/antrea-agent-tweaker.conf
+            subPath: antrea-agent-tweaker.conf
         - name: install-cni
-          image: "projects.registry.vmware.com/antrea/antrea-ubuntu:v1.7.1"
+          image: "antrea/antrea-advanced-debian:v1.7.1_vmware.1"
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -3715,7 +3860,7 @@ spec:
             mountPath: /var/run/antrea
       containers:
         - name: antrea-agent
-          image: "projects.registry.vmware.com/antrea/antrea-ubuntu:v1.7.1"
+          image: "antrea/antrea-advanced-debian:v1.7.1_vmware.1"
           imagePullPolicy: IfNotPresent
           command: ["antrea-agent"]
           # Log to both "/var/log/antrea/" and stderr (so "kubectl logs" can work).-
@@ -3807,7 +3952,7 @@ spec:
           - name: xtables-lock
             mountPath: /run/xtables.lock
         - name: antrea-ovs
-          image: "projects.registry.vmware.com/antrea/antrea-ubuntu:v1.7.1"
+          image: "antrea/antrea-advanced-debian:v1.7.1_vmware.1"
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -3847,6 +3992,9 @@ spec:
         - name: antrea-config
           configMap:
             name: antrea-config
+        - name: antrea-agent-tweaker-config
+          configMap:
+            name: antrea-agent-tweaker
         - name: host-cni-conf
           hostPath:
             path: /etc/cni/net.d
@@ -3901,7 +4049,7 @@ spec:
       annotations:
         # Automatically restart Pod if the ConfigMap changes
         # See https://helm.sh/docs/howto/charts_tips_and_tricks/#automatically-roll-deployments
-        checksum/config: 750097fa4ed60fda68fedf2f31b06a1a62dbbe5dc9a38e9c1f9ddc861a389401
+        checksum/config: ea61360cc22dff22cc94fba060568c110d5bac03638203b7f0ec04282129d6e5
       labels:
         app: antrea
         component: antrea-controller
@@ -3920,7 +4068,7 @@ spec:
       serviceAccountName: antrea-controller
       containers:
         - name: antrea-controller
-          image: "projects.registry.vmware.com/antrea/antrea-ubuntu:v1.7.1"
+          image: "antrea/antrea-advanced-debian:v1.7.1_vmware.1"
           imagePullPolicy: IfNotPresent
           resources:
             requests:
@@ -3994,7 +4142,7 @@ spec:
         # Make it optional as we only read it when selfSignedCert=false.
         - name: antrea-controller-tls
           secret:
-            secretName: antrea-controller-tls
+            secretName: "antrea-controller-tls"
             defaultMode: 0400
             optional: true
         - name: host-var-log-antrea
@@ -4119,7 +4267,7 @@ webhooks:
         namespace: kube-system
         path: "/validate/acnp"
     rules:
-      - operations: ["CREATE", "UPDATE"]
+      - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["crd.antrea.io"]
         apiVersions: ["v1alpha1"]
         resources: ["clusternetworkpolicies"]
@@ -4134,7 +4282,7 @@ webhooks:
         namespace: kube-system
         path: "/validate/anp"
     rules:
-      - operations: ["CREATE", "UPDATE"]
+      - operations: ["CREATE", "UPDATE", "DELETE"]
         apiGroups: ["crd.antrea.io"]
         apiVersions: ["v1alpha1"]
         resources: ["networkpolicies"]
