@@ -11,39 +11,7 @@ type AntreaProxyNodePortAddress []string
 
 // AntreaConfigSpec defines the desired state of AntreaConfig
 type AntreaConfigSpec struct {
-	Antrea    Antrea    `json:"antrea,omitempty"`
-	AntreaNSX AntreaNSX `json:"antreaNSX,omitempty"`
-}
-
-type AntreaNSX struct {
-	AntreaNSXConfigDataValue AntreaNSXConfigDataValue `json:"config,omitempty"`
-}
-
-type BootstrapFrom struct {
-	Provider BootstrapProvider `yaml:"provider,omitempty"`
-	Inline   BootstrapInline   `yaml:"inline,omitempty"`
-}
-
-type BootstrapProvider struct {
-	APIVersion string `yaml:"apiVersion, omitempty"`
-	Kind       string `yaml:"kind,omitempty"`
-	Name       string `yaml:"name,omitempty"`
-}
-
-type BootstrapInline struct {
-	NSXManagers []string `yaml:"nsxManagers,omitempty"`
-	ClusterName string   `yaml:"clusterName,omitempty"`
-	NSXCert     NSXCert  `yaml:"nsxCert,omitempty"`
-}
-
-type NSXCert struct {
-	TLSCrt string `yaml:"tls.crt,omitempty"`
-	TLSKey string `yaml:"tls.key,omitempty"`
-}
-
-type AntreaNSXConfigDataValue struct {
-	Enable        bool          `json:"enable,omitempty"`
-	BootstrapFrom BootstrapFrom `json:"bootstrapFrom,omitempty"`
+	Antrea Antrea `json:"antrea,omitempty"`
 }
 
 type Antrea struct {
@@ -96,6 +64,32 @@ type AntreaWireGuard struct {
 	Port int `json:"port,omitempty"`
 }
 
+type AntreaMultiCluster struct {
+	//+ kubebuilder:validation:Optional
+	Enable bool `json:"enable,omitempty"`
+	//+ kubebuilder:validation:Optional
+	Namespace string `json:"namespace,omitempty"`
+}
+
+type AntreaMulticast struct {
+	//+ kubebuilder:validation:Optional
+	MulticastInterfaces []string `json:"multicastInterfaces,omitempty"`
+	//+ kubebuilder:validation:Optional
+	IGMPQueryInterval string `json:"igmpQueryInterval,omitempty"`
+}
+
+type AntreaIPsec struct {
+	//+ kubebuilder:validation:Optional
+	AuthenticationMode string `json:"authenticationMode,omitempty"`
+}
+
+type AntreaIPSecCSRSigner struct {
+	//+ kubebuilder:validation:Optional
+	AutoApprove bool `json:"autoApprove,omitempty"`
+	//+ kubebuilder:validation:Optional
+	SelfSignedCA bool `json:"selfSignedCA，omitempty"`
+}
+
 type AntreaConfigDataValue struct {
 	// Specifies Egress related configuration.
 	// +kubebuilder:validation:Optional
@@ -117,6 +111,22 @@ type AntreaConfigDataValue struct {
 	// +kubebuilder:validation:Optional
 	WireGuard AntreaWireGuard `json:"wireGuard,omitempty"`
 
+	// Multicast related configuration.
+	// +kubebuilder:validation:Optional
+	Multicast AntreaMulticast `json:"multicast,omitempty"`
+
+	// IPsec related configuration
+	// +kubebuilder:validation:Optional
+	IPsec AntreaIPsec `json:"ipsec,omitempty"`
+
+	// IPSec CSR Signer related configuration.
+	// +kubebuilder:validation:Optional
+	IPSecCSRSigner AntreaIPSecCSRSigner `json:"ipsecCSRSigner,omitempty"`
+
+	// MultiCluster realted configuration.
+	// +kubebuilder:validation:Optional
+	MultiCluster AntreaMultiCluster `json:"multicluster,omitempty"`
+
 	// The name of the interface on Node which is used for tunneling or routing.
 	// +kubebuilder:validation:Optional
 	TransportInterface string `json:"transportInterface,omitempty"`
@@ -125,7 +135,7 @@ type AntreaConfigDataValue struct {
 	// +kubebuilder:validation:Optional
 	TransportInterfaceCIDRs []string `json:"transportInterfaceCIDRs,omitempty"`
 
-	// The names of the interfaces on Nodes that are used to forward multicast traffic.
+	// The names of the interfaces on Nodes that are used to forward multicast traffic. Depreacated.
 	// +kubebuilder:validation:Optional
 	MulticastInterfaces []string `json:"multicastInterfaces,omitempty"`
 
@@ -160,6 +170,21 @@ type AntreaConfigDataValue struct {
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:default:="TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384"
 	TLSCipherSuites string `json:"tlsCipherSuites,omitempty"`
+
+	// Enable bridging mode of Pod network on Nodes
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default:=false
+	EnableBridgingMode bool `json:"enableBridgingMode,omitempty"`
+
+	// Disable TX checksum offloading for container network interfaces
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default:=false
+	DisableTXChecksumOffload bool `json:"disableTXChecksumOffload,omitempty"`
+
+	// Provide the address of DNS server, to override the kube-dns service
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default:=""
+	DNSServerOverride string `json:"dnsServerOverride,omitempty"`
 
 	// FeatureGates is a map of feature names to flags that enable or disable experimental features
 	// +kubebuilder:validation:Optional
@@ -221,6 +246,31 @@ type AntreaFeatureGates struct {
 	// +kubebuilder:validation:Optional
 	// +kubebuilder:default:=false
 	Multicast bool `json:"Multicast,omitempty"`
+
+	// Enable Antrea Multi-cluster Gateway to support cross-cluster traffic.
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default:=false
+	MultiCluster bool `json:"Multicluster,omitempty"`
+
+	// Enable support for provisioning secondary network interfaces for Pods (using Pod annotations).
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default:=false
+	SecondaryNetwork bool `json:"SecondaryNetwork,omitempty"`
+
+	// Enable mirroring or redirecting the traffic Pods send or receive.
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default:=false
+	TrafficControl bool `json:"TrafficControl,omitempty"`
+
+	// Enable certificated-based authentication for IPsec.
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default:=false
+	IPsecCertAuth bool `json:"IPsecCertAuth,omitempty"`
+
+	// Run Kubernetes NodeIPAMController with Antrea.
+	// +kubebuilder:validation:Optional
+	// +kubebuilder:default:=false
+	NodeIPAM bool `json:"NodeIPAM,omitempty"`
 }
 
 // AntreaConfigStatus defines the observed state of AntreaConfig
