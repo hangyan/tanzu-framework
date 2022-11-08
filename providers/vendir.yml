@@ -14,7 +14,7 @@ directories:
   - path: .
     git:
       url: git@github.com:hangyan/community-edition.git
-      ref: 8236a3117cc0285cc67e5e58c4a015e7b9db32f4
+      ref: 2d5277871ae2f0adf1b5ea21c31c01824ba3ada6
     includePaths:
     - addons/packages/antrea/1.7.1/bundle/config/**/*
     - addons/packages/calico/3.24.1/bundle/config/**/*

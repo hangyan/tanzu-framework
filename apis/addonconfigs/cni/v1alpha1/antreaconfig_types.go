@@ -73,8 +73,6 @@ type AntreaMultiCluster struct {
 
 type AntreaMulticast struct {
 	//+ kubebuilder:validation:Optional
-	MulticastInterfaces []string `json:"multicastInterfaces,omitempty"`
-	//+ kubebuilder:validation:Optional
 	IGMPQueryInterval string `json:"igmpQueryInterval,omitempty"`
 }
 

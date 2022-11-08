@@ -62,8 +62,7 @@ type antreaIPsec struct {
 }
 
 type antreaMulticast struct {
-	MulticastInterfaces []string `yaml:"multicastInterfaces,omitempty"`
-	IGMPQueryInterval   string   `yaml:"igmpQueryInterval,omitempty"`
+	IGMPQueryInterval string `yaml:"igmpQueryInterval,omitempty"`
 }
 
 type antreaIPSecCSRSigner struct {
@@ -203,7 +202,6 @@ func mapAntreaConfigSpec(cluster *clusterv1beta1.Cluster, config *cniv1alpha1.An
 	configSpec.Antrea.AntreaConfigDataValue.FlowExporter.ActiveFlowTimeout = config.Spec.Antrea.AntreaConfigDataValue.AntreaFlowExporter.ActiveFlowTimeout
 	configSpec.Antrea.AntreaConfigDataValue.FlowExporter.IdleFlowTimeout = config.Spec.Antrea.AntreaConfigDataValue.AntreaFlowExporter.IdleFlowTimeout
 	configSpec.Antrea.AntreaConfigDataValue.WireGuard.Port = config.Spec.Antrea.AntreaConfigDataValue.WireGuard.Port
-	configSpec.Antrea.AntreaConfigDataValue.Multicast.MulticastInterfaces = config.Spec.Antrea.AntreaConfigDataValue.Multicast.MulticastInterfaces
 	configSpec.Antrea.AntreaConfigDataValue.Multicast.IGMPQueryInterval = config.Spec.Antrea.AntreaConfigDataValue.Multicast.IGMPQueryInterval
 	configSpec.Antrea.AntreaConfigDataValue.IPsec.AuthenticationMode = config.Spec.Antrea.AntreaConfigDataValue.IPsec.AuthenticationMode
 	configSpec.Antrea.AntreaConfigDataValue.IPSecCSRSigner.AutoApprove = config.Spec.Antrea.AntreaConfigDataValue.IPSecCSRSigner.AutoApprove

@@ -250,7 +250,7 @@ multicast:
 #@ if values.antrea.config.featureGates.Multicast:
   #! The names of the interfaces on Nodes that are used to forward multicast traffic.
   #! Defaults to transport interface if not set.
-  multicastInterfaces: #@ values.antrea.config.multicast.multicastInterfaces
+  multicastInterfaces: #@ values.antrea.config.multicastInterfaces
 
   #! The interval at which the antrea-agent sends IGMP queries to Pods.
   #! Valid time units are "ns", "us" (or "Âµs"), "ms", "s", "m", "h".
@@ -428,15 +428,10 @@ ipsecCSRSigner:
 #! Enable usage reporting (telemetry) to VMware.
 #@ if/end values.antrea.config.enableUsageReporting:
 enableUsageReporting: #@ values.antrea.config.enableUsageReporting
-
-
-
-
 #@ end
 
 
 #@ def antrea_agent_tweaker_conf():
-
 #! Enable disableUdpTunnelOffload will disable udp tunnel offloading feature on kubernetes node's default interface.
 #! By default, no actions will be taken.
 disableUdpTunnelOffload: #@ values.antrea.config.disableUdpTunnelOffload
